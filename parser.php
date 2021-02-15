@@ -316,13 +316,25 @@ function parseLines ($line)
 ini_set('display_errors', 'stderr');
 
 // check whether --help option is present, if so print help message and exit
-if ($argc > 1 && $argv[1] == '--help')
+if ($argc == 2)
 {
-  echo("Usage: parser.php [options] <inputFile\n\n");
-  echo("\t[options]:\n");
-  echo("\t\t --help - shows this info, if this option is present rest is ignored\n");
-  echo("\tinputFile - should be of type file.IPPcode21, other file extensions are not supported\n");
-  exit(0);
+  if ($argv[1] == '--help')
+  {
+    echo("Usage: parser.php [options] <inputFile\n\n");
+    echo("\t[options]:\n");
+    echo("\t\t --help - shows this info, if this option is present rest is ignored\n");
+    exit(0);
+  }
+  else
+  {
+    echo("Wrong option passed, run `parser.php --help` for further info, exiting...\n");
+    exit(1);
+  }
+}
+else if ($argc > 2)
+{
+  echo("Wrong number of passed options, run `parser.php --help` for further info, exiting...\n");
+  exit(1);
 }
 
 // read line by line from stdin
