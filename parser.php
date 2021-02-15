@@ -5,25 +5,25 @@ $instructionNumber = 1;
 $output = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
 // next 4 functions checks validity of given shit by regex 
-function isValidVar ($item)
+function isValidVar (String $item)
 {
   if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*/", $item))
     return true;
   return false;
 }
-function isValidLabel ($item)
+function isValidLabel (String $item)
 {
   if (preg_match("/^[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*/", $item))
     return true;
   return false;
 }
-function isValidSymb ($item)
+function isValidSymb (String $item)
 {
   if (preg_match("/^(GF|LF|TF|string|int|bool|nil)@[a-zA-Z_$&%*!?-\][a-zA-Z0-9\_$&%*!?-@]*/", $item))
     return true;
   return false;
 }
-function isValidType ($item)
+function isValidType (String $item)
 {
   if (preg_match("/^(string|int|bool)$/", $item))
     return true;
@@ -31,28 +31,34 @@ function isValidType ($item)
 }
 
 // 2 functions for adding xml <instruction> & </instruction> tags to $output
-function addInstructionStart ($name)
+function addInstructionStart (String $name)
 {
   global $output, $instructionNumber;
   $output .= "\t<instruction order=\"";
   $output .= $instructionNumber++;
   $output .= "\" opcode=\"";
-  $output .= strtoupper($name)."\">\n";
+  $output .= "$name\">\n";
 }
 function addInstructionEnd ()
 {
   global $output;
   $output .= "\t</instruction>\n";
 }
+function addArgument (Int $number, String $type, String $value)
+{
+  global $output;
 
-function genInstructionNoArg ($data)
+  $output .= "\t\t<arg$number type=\"$type\">$value</arg$number>\n";
+}
+
+function genInstructionNoArg (Array $data)
 {
   global $instructionNumber, $output;
 
   addInstructionStart($data[0]);
   addInstructionEnd();
 }
-function genInstructionVar ($data)
+function genInstructionVar (Array $data)
 {
   global $instructionNumber, $output;
 
@@ -60,13 +66,13 @@ function genInstructionVar ($data)
 
   // fix with comment present 
   if (isValidVar($data[1]))
-    $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
+    addArgument(1, "var", $data[1]);
   else
     exit(23);
 
   addInstructionEnd();
 }
-function genInstructionLabel ($data)
+function genInstructionLabel (Array $data)
 {
   global $instructionNumber, $output;
 
@@ -74,13 +80,13 @@ function genInstructionLabel ($data)
 
   // fix with comment present 
   if (isValidLabel($data[1]))
-    $output .= "\t\t<arg1 type=\"label\">".$data[1]."</arg1>\n";
+    addArgument(1, "label", $data[1]);
   else
     exit(23);
 
   addInstructionEnd();
 }
-function genInstructionSymb ($data)
+function genInstructionSymb (Array $data)
 {
   global $instructionNumber, $output;
 
@@ -91,12 +97,12 @@ function genInstructionSymb ($data)
   {
     // check whether variable or constant
     if (preg_match("/^(GF|LF|TF)/", $data[1]))
-      $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
+      addArgument(1, "var", $data[1]);
     else
     {
       $strippedType = substr($data[1], 0, strpos($data[1], '@'));
       $strippedValue = substr($data[1], strpos($data[1], '@') + 1);
-      $output .= "\t\t<arg1 type=\"$strippedType\">".$strippedValue."</arg1>\n";
+      addArgument(1, $strippedType, $strippedValue);
     }
   }
   else
@@ -104,26 +110,26 @@ function genInstructionSymb ($data)
 
   addInstructionEnd();
 }
-function genInstructionVarSymb ($data)
+function genInstructionVarSymb (Array $data)
 {
   global $instructionNumber, $output;
 
   addInstructionStart($data[0]);
 
   if (isValidVar($data[1]))
-    $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
+    addArgument(1, "var", $data[1]);
   else
     exit(23);
 
   if (isValidSymb($data[2]))
   {
     if (preg_match("/^(GF|LF|TF)/", $data[2]))
-      $output .= "\t\t<arg2 type=\"var\">".$data[2]."</arg2>\n";
+      addArgument(2, "var", $data[2]);
     else
     {
       $strippedType = substr($data[2], 0, strpos($data[2], '@'));
       $strippedValue = substr($data[2], strpos($data[2], '@') + 1);
-      $output .= "\t\t<arg2 type=\"$strippedType\">".$strippedValue."</arg2>\n";
+      addArgument(2, $strippedType, $strippedValue);
     }
   }
   else
@@ -131,25 +137,25 @@ function genInstructionVarSymb ($data)
 
   addInstructionEnd();
 }
-function genInstructionVarType ($data)
+function genInstructionVarType (Array $data)
 {
   global $instructionNumber, $output;
 
   addInstructionStart($data[0]);
 
   if (isValidVar($data[1]))
-    $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
+    addArgument(1, "var", $data[1]);
   else
     exit(23);
 
   if (isValidType($data[2]))
-    $output .= "\t\t<arg2 type=\"$data[2]\"></arg2>\n";
+    addArgument(2, $data[2], "");
   else
     exit(23);
 
   addInstructionEnd();
 }
-function genInstructionLabelDoubleSymb ($data)
+function genInstructionLabelDoubleSymb (Array $data)
 {
   global $instructionNumber, $output;
 
@@ -157,19 +163,19 @@ function genInstructionLabelDoubleSymb ($data)
 
   // fix with comment present 
   if (isValidLabel($data[1]))
-    $output .= "\t\t<arg1 type=\"label\">".$data[1]."</arg1>\n";
+    addArgument(1, "label", $data[1]);
   else
     exit(23);
 
   if (isValidSymb($data[2]))
   {
     if (preg_match("/^(GF|LF|TF)/", $data[2]))
-      $output .= "\t\t<arg2 type=\"var\">".$data[2]."</arg2>\n";
+      addArgument(2, "var", $data[2]);
     else
     {
       $strippedType = substr($data[2], 0, strpos($data[2], '@'));
       $strippedValue = substr($data[2], strpos($data[2], '@') + 1);
-      $output .= "\t\t<arg2 type=\"$strippedType\">".$strippedValue."</arg2>\n";
+      addArgument(2, $strippedType, $strippedValue);
     }
   }
   else
@@ -178,12 +184,12 @@ function genInstructionLabelDoubleSymb ($data)
   if (isValidSymb($data[3]))
   {
     if (preg_match("/^(GF|LF|TF)/", $data[3]))
-      $output .= "\t\t<arg3 type=\"var\">".$data[3]."</arg3>\n";
+      addArgument(3, "var", $data[3]);
     else
     {
       $strippedType = substr($data[3], 0, strpos($data[3], '@'));
       $strippedValue = substr($data[3], strpos($data[3], '@') + 1);
-      $output .= "\t\t<arg3 type=\"$strippedType\">".$strippedValue."</arg3>\n";
+      addArgument(3, $strippedType, $strippedValue);
     }
   }
   else
@@ -191,7 +197,7 @@ function genInstructionLabelDoubleSymb ($data)
 
   addInstructionEnd();
 }
-function genInstructionVarDoubleSymb ($data)
+function genInstructionVarDoubleSymb (Array $data)
 {
   global $instructionNumber, $output;
 
@@ -199,19 +205,19 @@ function genInstructionVarDoubleSymb ($data)
 
   // fix with comment present 
   if (isValidVar($data[1]))
-    $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
+    addArgument(1, "var", $data[1]);
   else
     exit(23);
 
   if (isValidSymb($data[2]))
   {
     if (preg_match("/^(GF|LF|TF)/", $data[2]))
-      $output .= "\t\t<arg2 type=\"var\">".$data[2]."</arg2>\n";
+      addArgument(2, "var", $data[2]);
     else
     {
       $strippedType = substr($data[2], 0, strpos($data[2], '@'));
       $strippedValue = substr($data[2], strpos($data[2], '@') + 1);
-      $output .= "\t\t<arg2 type=\"$strippedType\">".$strippedValue."</arg2>\n";
+      addArgument(2, $strippedType, $strippedValue);
     }
   }
   else
@@ -220,12 +226,12 @@ function genInstructionVarDoubleSymb ($data)
   if (isValidSymb($data[3]))
   {
     if (preg_match("/^(GF|LF|TF)/", $data[3]))
-      $output .= "\t\t<arg3 type=\"var\">".$data[3]."</arg3>\n";
+      addArgument(3, "var", $data[3]);
     else
     {
       $strippedType = substr($data[3], 0, strpos($data[3], '@'));
       $strippedValue = substr($data[3], strpos($data[3], '@') + 1);
-      $output .= "\t\t<arg3 type=\"$strippedType\">".$strippedValue."</arg3>\n";
+      addArgument(3, $strippedType, $strippedValue);
     }
   }
   else
@@ -234,10 +240,10 @@ function genInstructionVarDoubleSymb ($data)
   addInstructionEnd();
 }
 
-function parseLines ($line)
+function parseLines (Array $lineData)
 {
-  if ($line[0][0] == '#') return;
-  switch (strtoupper($line[0]))
+  if ($lineData[0][0] == '#') return;
+  switch (strtoupper($lineData[0]))
   {
     // NO ARGUMENTS - 5 instructions
     case 'CREATEFRAME':
@@ -245,20 +251,20 @@ function parseLines ($line)
     case 'POPFRAME':
     case 'RETURN':
     case 'BREAK':
-      genInstructionNoArg($line);
+      genInstructionNoArg($lineData);
       break;
 
     // <var> argument
     case 'DEFVAR':
     case 'POPS':
-      genInstructionVar($line);
+      genInstructionVar($lineData);
       break;
 
     // <label> argument
     case 'LABEL':
     case 'JUMP':
     case 'CALL':
-      genInstructionLabel($line);
+      genInstructionLabel($lineData);
       break;
 
     // <symb> argument
@@ -266,7 +272,7 @@ function parseLines ($line)
     case 'WRITE':
     case 'EXIT':
     case 'DPRINT':
-      genInstructionSymb($line);
+      genInstructionSymb($lineData);
       break;
 
     // <var> <symb> arguments
@@ -275,18 +281,18 @@ function parseLines ($line)
     case 'INT2CHAR':
     case 'STRLEN':
     case 'TYPE':
-      genInstructionVarSymb($line);
+      genInstructionVarSymb($lineData);
       break;
     
     // <var> <type> arguments
     case 'READ':
-      genInstructionVarType($line);
+      genInstructionVarType($lineData);
       break;
     
     // <label> <symb1> <symb2> arguments
     case 'JUMPIFEQ':
     case 'JUMPIFNEQ':
-      genInstructionLabelDoubleSymb($line);
+      genInstructionLabelDoubleSymb($lineData);
       break;
 
     // <var> <symb1> <symb2> arguments 
@@ -303,11 +309,11 @@ function parseLines ($line)
     case 'CONCAT':
     case 'GETCHAR':
     case 'SETCHAR':
-      genInstructionVarDoubleSymb($line);
+      genInstructionVarDoubleSymb($lineData);
       break;
 
     default:
-      echo("Yo, nigga, you fucked up hard. That's not supported! Exiting...");
+      echo("Yo, nigga, you fucked up hard. That's not supported! Exiting...\n");
       exit(22);
   }
 }
@@ -360,10 +366,6 @@ while ($line = fgets(STDIN))
   // parse rest of file
   parseLines($splittedLine);
 }
-
-
-
-
 
 $output .= "</program>\n";
 echo $output;
