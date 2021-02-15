@@ -30,6 +30,7 @@ function isValidType ($item)
   return false;
 }
 
+// 2 functions for adding xml <instruction> & </instruction> tags to $output
 function addInstructionStart ($name)
 {
   global $output, $instructionNumber;
@@ -247,10 +248,11 @@ while ($line = fgets(STDIN))
   // check if correct header is present and decide action depending on it
   if ($presentHeader == false)
   {
-    if ($splittedLine[0] == '.IPPcode21') $presentHeader = true;
+    // maybe add fix for comment
+    if (preg_match("/^.ippcode21$/i", $splittedLine[0])) $presentHeader = true;
     else
     {
-      echo("Missing or wrong written header, expected '.IPPcode21', exiting...\n");
+      echo("Missing or wrong header, expected '.IPPcode21', exiting...\n");
       exit(21);
     }
     $output .= "<program language=\"IPPcode21\">\n";
