@@ -45,108 +45,192 @@ function addInstructionEnd ()
   $output .= "\t</instruction>\n";
 }
 
-function genInstructionNoArg ($line)
+function genInstructionNoArg ($data)
 {
   global $instructionNumber, $output;
 
-  addInstructionStart($line[0]);
+  addInstructionStart($data[0]);
   addInstructionEnd();
 }
-function genInstructionVar ($line)
+function genInstructionVar ($data)
 {
   global $instructionNumber, $output;
 
-  addInstructionStart($line[0]);
+  addInstructionStart($data[0]);
+
   // fix with comment present 
-  if (isValidVar($line[1]))
-    $output .= "\t\t<arg1 type=\"var\">".$line[1]."</arg1>\n";
+  if (isValidVar($data[1]))
+    $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
   else
     exit(23);
+
   addInstructionEnd();
 }
-function genInstructionLabel ($line)
+function genInstructionLabel ($data)
 {
   global $instructionNumber, $output;
 
-  addInstructionStart($line[0]);
+  addInstructionStart($data[0]);
+
   // fix with comment present 
-  if (preg_match("/^[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*/", $line[1]))
-    $output .= "\t\t<arg1 type=\"label\">".$line[1]."</arg1>\n";
+  if (isValidLabel($data[1]))
+    $output .= "\t\t<arg1 type=\"label\">".$data[1]."</arg1>\n";
   else
     exit(23);
+
   addInstructionEnd();
 }
-function genInstructionSymb ($line)
+function genInstructionSymb ($data)
 {
   global $instructionNumber, $output;
 
-  addInstructionStart($line[0]);
+  addInstructionStart($data[0]);
+
   // fix with comment present 
-  if (preg_match("/^(GF|LF|TF|string|int|bool|nil)@[a-zA-Z_$&%*!?-\][a-zA-Z0-9\_$&%*!?-@]*/", $line[1]))
+  if (isValidSymb($data[1]))
   {
-    if (preg_match("/^(GF|LF|TF)/", $line[1]))
-      $output .= "\t\t<arg2 type=\"var\">".$line[1]."</arg2>\n";
+    // check whether variable or constant
+    if (preg_match("/^(GF|LF|TF)/", $data[1]))
+      $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
     else
     {
-      $strippedType = substr($line[1], 0, strpos($line[1], '@'));
-      $strippedValue = substr($line[1], strpos($line[1], '@'));
+      $strippedType = substr($data[1], 0, strpos($data[1], '@'));
+      $strippedValue = substr($data[1], strpos($data[1], '@') + 1);
+      $output .= "\t\t<arg1 type=\"$strippedType\">".$strippedValue."</arg1>\n";
+    }
+  }
+  else
+    exit(23);
+
+  addInstructionEnd();
+}
+function genInstructionVarSymb ($data)
+{
+  global $instructionNumber, $output;
+
+  addInstructionStart($data[0]);
+
+  if (isValidVar($data[1]))
+    $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
+  else
+    exit(23);
+
+  if (isValidSymb($data[2]))
+  {
+    if (preg_match("/^(GF|LF|TF)/", $data[2]))
+      $output .= "\t\t<arg2 type=\"var\">".$data[2]."</arg2>\n";
+    else
+    {
+      $strippedType = substr($data[2], 0, strpos($data[2], '@'));
+      $strippedValue = substr($data[2], strpos($data[2], '@') + 1);
       $output .= "\t\t<arg2 type=\"$strippedType\">".$strippedValue."</arg2>\n";
     }
   }
   else
     exit(23);
+
   addInstructionEnd();
 }
-function genInstructionVarSymb ($line)
+function genInstructionVarType ($data)
 {
   global $instructionNumber, $output;
 
-  addInstructionStart($line[0]);
+  addInstructionStart($data[0]);
 
-  if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][a-zA-Z_$&%*!?-]*/", $line[1]))
-    $output .= "\t\t<arg1 type=\"var\">".$line[1]."</arg1>\n";
+  if (isValidVar($data[1]))
+    $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
   else
     exit(23);
 
-  if (preg_match("/^(GF|LF|TF|string|int|bool|nil)@[a-zA-Z_$&%*!?-]*/", $line[2]))
+  if (isValidType($data[2]))
+    $output .= "\t\t<arg2 type=\"$data[2]\"></arg2>\n";
+  else
+    exit(23);
+
+  addInstructionEnd();
+}
+function genInstructionLabelDoubleSymb ($data)
+{
+  global $instructionNumber, $output;
+
+  addInstructionStart($data[0]);
+
+  // fix with comment present 
+  if (isValidLabel($data[1]))
+    $output .= "\t\t<arg1 type=\"label\">".$data[1]."</arg1>\n";
+  else
+    exit(23);
+
+  if (isValidSymb($data[2]))
   {
-    $splittedArg = explode('@', trim($line[2], "\n"));
-    if (preg_match("/^(GF|LF|TF)/", $splittedArg[0]))
-      $output .= "\t\t<arg2 type=\"var\">".$splittedArg[0]."@".$splittedArg[1]."</arg2>\n";
+    if (preg_match("/^(GF|LF|TF)/", $data[2]))
+      $output .= "\t\t<arg2 type=\"var\">".$data[2]."</arg2>\n";
     else
-      $output .= "\t\t<arg2 type=\"$splittedArg[0]\">".$splittedArg[1]."</arg2>\n";
+    {
+      $strippedType = substr($data[2], 0, strpos($data[2], '@'));
+      $strippedValue = substr($data[2], strpos($data[2], '@') + 1);
+      $output .= "\t\t<arg2 type=\"$strippedType\">".$strippedValue."</arg2>\n";
+    }
   }
   else
     exit(23);
-  addInstructionEnd();
-}
-function genInstructionVarType ($line)
-{
-  global $instructionNumber, $output;
 
-  addInstructionStart($line[0]);
-
-  if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][a-zA-Z_$&%*!?-]*/", $line[1]))
-    $output .= "\t\t<arg1 type=\"var\">".$line[1]."</arg1>\n";
+  if (isValidSymb($data[3]))
+  {
+    if (preg_match("/^(GF|LF|TF)/", $data[3]))
+      $output .= "\t\t<arg3 type=\"var\">".$data[3]."</arg3>\n";
+    else
+    {
+      $strippedType = substr($data[3], 0, strpos($data[3], '@'));
+      $strippedValue = substr($data[3], strpos($data[3], '@') + 1);
+      $output .= "\t\t<arg3 type=\"$strippedType\">".$strippedValue."</arg3>\n";
+    }
+  }
   else
     exit(23);
 
-  if (preg_match("/^(string|int|bool)$/", $line[2]))
-    $output .= "\t\t<arg2 type=\"$line[2]\"></arg2>\n";
-  else
-    exit(23);
   addInstructionEnd();
 }
-function genInstructionLabelDoubleSymb ($line)
+function genInstructionVarDoubleSymb ($data)
 {
   global $instructionNumber, $output;
 
-  addInstructionStart($line[0]);
+  addInstructionStart($data[0]);
+
   // fix with comment present 
-  if (preg_match("/^[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*/", $line[1]))
-    $output .= "\t\t<arg1 type=\"label\">".$line[1]."</arg1>\n";
+  if (isValidVar($data[1]))
+    $output .= "\t\t<arg1 type=\"var\">".$data[1]."</arg1>\n";
   else
     exit(23);
+
+  if (isValidSymb($data[2]))
+  {
+    if (preg_match("/^(GF|LF|TF)/", $data[2]))
+      $output .= "\t\t<arg2 type=\"var\">".$data[2]."</arg2>\n";
+    else
+    {
+      $strippedType = substr($data[2], 0, strpos($data[2], '@'));
+      $strippedValue = substr($data[2], strpos($data[2], '@') + 1);
+      $output .= "\t\t<arg2 type=\"$strippedType\">".$strippedValue."</arg2>\n";
+    }
+  }
+  else
+    exit(23);
+
+  if (isValidSymb($data[3]))
+  {
+    if (preg_match("/^(GF|LF|TF)/", $data[3]))
+      $output .= "\t\t<arg3 type=\"var\">".$data[3]."</arg3>\n";
+    else
+    {
+      $strippedType = substr($data[3], 0, strpos($data[3], '@'));
+      $strippedValue = substr($data[3], strpos($data[3], '@') + 1);
+      $output .= "\t\t<arg3 type=\"$strippedType\">".$strippedValue."</arg3>\n";
+    }
+  }
+  else
+    exit(23);
+
   addInstructionEnd();
 }
 
@@ -202,6 +286,7 @@ function parseLines ($line)
     // <label> <symb1> <symb2> arguments
     case 'JUMPIFEQ':
     case 'JUMPIFNEQ':
+      genInstructionLabelDoubleSymb($line);
       break;
 
     // <var> <symb1> <symb2> arguments 
@@ -218,6 +303,7 @@ function parseLines ($line)
     case 'CONCAT':
     case 'GETCHAR':
     case 'SETCHAR':
+      genInstructionVarDoubleSymb($line);
       break;
 
     default:
