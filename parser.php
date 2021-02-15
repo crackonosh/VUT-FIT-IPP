@@ -1,8 +1,21 @@
 <?php
+//TODO: check strings validity (change < to smth else and so on [viz. forum])
+//TODO: comment stripping 
+
+
+
+
 // global variables used for correct behavior of parser
 $presentHeader = false;
 $instructionNumber = 1;
 $output = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+
+function stripComment(String $item)
+{
+  if (strpos($item, '#') != NULL)
+    return substr($item, 0, strpos($item, '#'));
+  return $item;
+}
 
 // next 4 functions checks validity of given shit by regex 
 function isValidVar (String $item)
@@ -347,7 +360,7 @@ else if ($argc > 2)
 while ($line = fgets(STDIN))
 {
   // trim $line from newLine character and explode it by white space
-  $splittedLine = explode(' ', trim($line, "\n"));
+  $splittedLine = explode(' ', stripComment(trim($line, "\n")));
 
   // check if correct header is present and decide action depending on it
   if ($presentHeader == false)
