@@ -150,7 +150,7 @@ function genInstructionLabelDoubleSymb ($line)
   addInstructionEnd();
 }
 
-function parseLine ($line)
+function parseLines ($line)
 {
   if ($line[0][0] == '#') return;
   switch (strtoupper($line[0]))
@@ -260,7 +260,7 @@ while ($line = fgets(STDIN))
   }
 
   // parse rest of file
-  parseLine($splittedLine);
+  parseLines($splittedLine);
 }
 
 
