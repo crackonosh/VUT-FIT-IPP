@@ -1,9 +1,6 @@
 <?php
 //TODO: check strings validity (change < to smth else and so on [viz. forum])
-//TODO: comment stripping 
-
-
-
+//TODO: check valid number of arguments for each genInstruction function
 
 // global variables used for correct behavior of parser
 $presentHeader = false;
@@ -77,7 +74,6 @@ function genInstructionVar (Array $data)
 
   addInstructionStart($data[0]);
 
-  // fix with comment present 
   if (isValidVar($data[1]))
     addArgument(1, "var", $data[1]);
   else
@@ -91,7 +87,6 @@ function genInstructionLabel (Array $data)
 
   addInstructionStart($data[0]);
 
-  // fix with comment present 
   if (isValidLabel($data[1]))
     addArgument(1, "label", $data[1]);
   else
@@ -105,7 +100,6 @@ function genInstructionSymb (Array $data)
 
   addInstructionStart($data[0]);
 
-  // fix with comment present 
   if (isValidSymb($data[1]))
   {
     // check whether variable or constant
@@ -174,7 +168,6 @@ function genInstructionLabelDoubleSymb (Array $data)
 
   addInstructionStart($data[0]);
 
-  // fix with comment present 
   if (isValidLabel($data[1]))
     addArgument(1, "label", $data[1]);
   else
@@ -216,7 +209,6 @@ function genInstructionVarDoubleSymb (Array $data)
 
   addInstructionStart($data[0]);
 
-  // fix with comment present 
   if (isValidVar($data[1]))
     addArgument(1, "var", $data[1]);
   else
