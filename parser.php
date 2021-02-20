@@ -111,6 +111,7 @@ function genInstructionSymb (Array $data)
     {
       $strippedType = substr($data[1], 0, strpos($data[1], '@'));
       $strippedValue = substr($data[1], strpos($data[1], '@') + 1);
+      checkValuesForType($strippedType, $strippedValue);
       addArgument(1, $strippedType, $strippedValue);
     }
   }
@@ -138,6 +139,8 @@ function genInstructionVarSymb (Array $data)
     {
       $strippedType = substr($data[2], 0, strpos($data[2], '@'));
       $strippedValue = substr($data[2], strpos($data[2], '@') + 1);
+      // check value for specific type
+      checkValuesForType($strippedType, $strippedValue);
       addArgument(2, $strippedType, $strippedValue);
     }
   }
@@ -183,6 +186,7 @@ function genInstructionLabelDoubleSymb (Array $data)
     {
       $strippedType = substr($data[2], 0, strpos($data[2], '@'));
       $strippedValue = substr($data[2], strpos($data[2], '@') + 1);
+      checkValuesForType($strippedType, $strippedValue);
       addArgument(2, $strippedType, $strippedValue);
     }
   }
@@ -197,6 +201,7 @@ function genInstructionLabelDoubleSymb (Array $data)
     {
       $strippedType = substr($data[3], 0, strpos($data[3], '@'));
       $strippedValue = substr($data[3], strpos($data[3], '@') + 1);
+      checkValuesForType($strippedType, $strippedValue);
       addArgument(3, $strippedType, $strippedValue);
     }
   }
@@ -224,6 +229,7 @@ function genInstructionVarDoubleSymb (Array $data)
     {
       $strippedType = substr($data[2], 0, strpos($data[2], '@'));
       $strippedValue = substr($data[2], strpos($data[2], '@') + 1);
+      checkValuesForType($strippedType, $strippedValue);
       addArgument(2, $strippedType, $strippedValue);
     }
   }
@@ -238,6 +244,7 @@ function genInstructionVarDoubleSymb (Array $data)
     {
       $strippedType = substr($data[3], 0, strpos($data[3], '@'));
       $strippedValue = substr($data[3], strpos($data[3], '@') + 1);
+      checkValuesForType($strippedType, $strippedValue);
       addArgument(3, $strippedType, $strippedValue);
     }
   }
@@ -245,6 +252,50 @@ function genInstructionVarDoubleSymb (Array $data)
     exit(23);
 
   addInstructionEnd();
+}
+
+function checkArgumentsCount (Int $expectedCount, Array $data)
+{
+  if ($expectedCount != ($realCount = count($data) - 1))
+  {
+    echo("Invalid number of arguments, expected $expectedCount, got $realCount, exiting\n");
+    exit(23);
+  }
+}
+function checkValuesForType (String $type, String $value)
+{
+  switch ($type)
+  {
+    case 'nil':
+      if ($type == 'nil' && $value != 'nil')
+      {
+        echo("Invalid value for nil type, exiting...\n");
+        exit(23);
+      }
+      break;
+    case 'bool':
+      if (
+        $type == 'bool' &&
+        ($value != true || $value != false)
+      ){
+        echo("Invalid value for bool type, exiting...\n");
+        exit(23);
+      }
+      break;
+    case 'string':
+      if (
+        $type == 'string' &&
+        preg_match(
+          "/(\\\\[^0-9])|(\\\\[0-9][^0-9])|(\\\\[0-9][0-9][^0-9])/",
+          $value
+        )
+      ){
+        echo("Invalid number of parameters for escaped character, exiting...\n");
+        exit(23);
+      }
+      break;
+    default:
+  }
 }
 
 function parseLines (Array $lineData)
@@ -258,12 +309,14 @@ function parseLines (Array $lineData)
     case 'POPFRAME':
     case 'RETURN':
     case 'BREAK':
+      checkArgumentsCount(0, $lineData);
       genInstructionNoArg($lineData);
       break;
 
     // <var> argument
     case 'DEFVAR':
     case 'POPS':
+      checkArgumentsCount(1, $lineData);
       genInstructionVar($lineData);
       break;
 
@@ -271,6 +324,7 @@ function parseLines (Array $lineData)
     case 'LABEL':
     case 'JUMP':
     case 'CALL':
+      checkArgumentsCount(1, $lineData);
       genInstructionLabel($lineData);
       break;
 
@@ -279,6 +333,7 @@ function parseLines (Array $lineData)
     case 'WRITE':
     case 'EXIT':
     case 'DPRINT':
+      checkArgumentsCount(1, $lineData);
       genInstructionSymb($lineData);
       break;
 
@@ -288,17 +343,20 @@ function parseLines (Array $lineData)
     case 'INT2CHAR':
     case 'STRLEN':
     case 'TYPE':
+      checkArgumentsCount(2, $lineData);
       genInstructionVarSymb($lineData);
       break;
     
     // <var> <type> arguments
     case 'READ':
+      checkArgumentsCount(2, $lineData);
       genInstructionVarType($lineData);
       break;
     
     // <label> <symb1> <symb2> arguments
     case 'JUMPIFEQ':
     case 'JUMPIFNEQ':
+      checkArgumentsCount(3, $lineData);
       genInstructionLabelDoubleSymb($lineData);
       break;
 
@@ -316,6 +374,7 @@ function parseLines (Array $lineData)
     case 'CONCAT':
     case 'GETCHAR':
     case 'SETCHAR':
+      checkArgumentsCount(3, $lineData);
       genInstructionVarDoubleSymb($lineData);
       break;
 
