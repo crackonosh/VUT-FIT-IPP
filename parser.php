@@ -377,6 +377,7 @@ while ($line = fgets(STDIN))
   parseLines($splittedLine);
 }
 
+// check that file wasn't empty
 if (!$presentHeader)
 {
   echo("Empty file, exiting...\n");
