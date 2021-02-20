@@ -1,4 +1,6 @@
 <?php
+// for correct displaying error msgs to stderr, taken from project assignment
+ini_set('display_errors', 'stderr');
 //TODO: check strings validity (change < to smth else and so on [viz. forum])
 //TODO: check valid number of arguments for each genInstruction function
 
@@ -323,9 +325,6 @@ function parseLines (Array $lineData)
   }
 }
 
-// for correct displaying error msgs to stderr, taken from project assignment
-ini_set('display_errors', 'stderr');
-
 // check whether --help option is present, if so print help message and exit
 if ($argc == 2)
 {
@@ -354,14 +353,17 @@ while ($line = fgets(STDIN))
   // skip empty lines
   if ($line == "\n") continue;
 
-  // trim $line from newLine character and explode it by white space
-  $splittedLine = explode(' ', stripComment(trim($line, "\n")));
+  /**
+   * trim line from newLine character & leading space
+   * and then split it by white characters
+   */
+  $splittedLine = preg_split('/\s+/', stripComment(trim(ltrim($line), "\n")));
 
   // check if correct header is present and decide action depending on it
-  if ($presentHeader == false)
+  if (!$presentHeader)
   {
     // maybe add fix for comment
-    if (preg_match("/^.ippcode21$/i", $splittedLine[0])) $presentHeader = true;
+    if (preg_match("/^.ippcode19$/i", $splittedLine[0])) $presentHeader = true;
     else
     {
       echo("Missing or wrong header, expected '.IPPcode21', exiting...\n");
@@ -373,6 +375,12 @@ while ($line = fgets(STDIN))
 
   // parse rest of file
   parseLines($splittedLine);
+}
+
+if (!$presentHeader)
+{
+  echo("Empty file, exiting...\n");
+  exit(21);
 }
 
 $output .= "</program>\n";
