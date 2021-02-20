@@ -1,8 +1,6 @@
 <?php
 // for correct displaying error msgs to stderr, taken from project assignment
 ini_set('display_errors', 'stderr');
-//TODO: check strings validity (change < to smth else and so on [viz. forum])
-//TODO: check valid number of arguments for each genInstruction function
 
 // global variables used for correct behavior of parser
 $presentHeader = false;
@@ -258,7 +256,10 @@ function checkArgumentsCount (Int $expectedCount, Array $data)
 {
   if ($expectedCount != ($realCount = count($data) - 1))
   {
-    echo("Invalid number of arguments, expected $expectedCount, got $realCount, exiting\n");
+    fwrite(
+      STDERR,
+      "Invalid number of arguments, expected $expectedCount, got $realCount, exiting...\n"
+    );
     exit(23);
   }
 }
@@ -269,7 +270,7 @@ function checkValuesForType (String $type, String $value)
     case 'nil':
       if ($type == 'nil' && $value != 'nil')
       {
-        echo("Invalid value for nil type, exiting...\n");
+        fwrite(STDERR, "Invalid value for nil type, exiting...\n");
         exit(23);
       }
       break;
@@ -278,7 +279,7 @@ function checkValuesForType (String $type, String $value)
         $type == 'bool' &&
         ($value != true || $value != false)
       ){
-        echo("Invalid value for bool type, exiting...\n");
+        fwrite(STDERR, "Invalid value for bool type, exiting...\n");
         exit(23);
       }
       break;
@@ -290,7 +291,10 @@ function checkValuesForType (String $type, String $value)
           $value
         )
       ){
-        echo("Invalid number of parameters for escaped character, exiting...\n");
+        fwrite(
+          STDERR,
+          "Invalid number of parameters for escaped character, exiting...\n"
+        );
         exit(23);
       }
       break;
@@ -379,7 +383,10 @@ function parseLines (Array $lineData)
       break;
 
     default:
-      echo("Yo, nigga, you fucked up hard. That's not supported! Exiting...\n");
+      fwrite(
+        STDERR,
+        "Invalid instruction passed, exiting...\n"
+      );
       exit(22);
   }
 }
@@ -396,13 +403,19 @@ if ($argc == 2)
   }
   else
   {
-    echo("Wrong option passed, run `parser.php --help` for further info, exiting...\n");
+    fwrite(
+      STDERR,
+      "Wrong option passed, run `parser.php --help` for further info, exiting...\n"
+    );
     exit(1);
   }
 }
 else if ($argc > 2)
 {
-  echo("Wrong number of passed options, run `parser.php --help` for further info, exiting...\n");
+  fwrite(
+    STDERR,
+    "Wrong number of passed options, run `parser.php --help` for further info, exiting...\n"
+  );
   exit(1);
 }
 
@@ -425,7 +438,10 @@ while ($line = fgets(STDIN))
     if (preg_match("/^.ippcode19$/i", $splittedLine[0])) $presentHeader = true;
     else
     {
-      echo("Missing or wrong header, expected '.IPPcode21', exiting...\n");
+      fwrite(
+        STDERR,
+        "Missing or wrong header, expected '.IPPcode21', exiting...\n"
+      );
       exit(21);
     }
     $output .= "<program language=\"IPPcode21\">\n";
@@ -439,7 +455,7 @@ while ($line = fgets(STDIN))
 // check that file wasn't empty
 if (!$presentHeader)
 {
-  echo("Empty file, exiting...\n");
+  fwrite(STDERR, "Empty file, exiting...\n");
   exit(21);
 }
 
