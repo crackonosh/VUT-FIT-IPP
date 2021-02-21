@@ -503,7 +503,10 @@ while ($line = fgets(STDIN))
    * trim line from newLine character & leading space
    * and then split it by white characters
    */
-  $splittedLine = preg_split('/\s+/', stripComment(trim(ltrim($line), "\n")));
+  $splittedLine = preg_split(
+    '/\s+/',
+    rtrim(stripComment(trim(ltrim($line), "\n")))
+  );
 
   // check if correct header is present and decide action depending on it
   if (!$presentHeader)
