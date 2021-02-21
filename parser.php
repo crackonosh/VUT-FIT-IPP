@@ -7,6 +7,12 @@ $presentHeader = false;
 $instructionNumber = 1;
 $output = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
+/**
+ * @brief Strips comment from given @a $item
+ * 
+ * @param $item
+ * @return string
+ */
 function stripComment(String $item)
 {
   if (strpos($item, '#') != NULL)
@@ -14,25 +20,48 @@ function stripComment(String $item)
   return $item;
 }
 
-// next 4 functions checks validity of given shit by regex 
+/**
+ * @brief Checks valid syntax of var from @a $item
+ * 
+ * @param $item
+ * @return bool 
+ */
 function isValidVar (String $item)
 {
   if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*/", $item))
     return true;
   return false;
 }
+/**
+ * @brief Checks valid syntax of label from @a $item
+ * 
+ * @param $item
+ * @return bool 
+ */
 function isValidLabel (String $item)
 {
   if (preg_match("/^[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*/", $item))
     return true;
   return false;
 }
+/**
+ * @brief Checks valid syntax of symb from @a $item
+ * 
+ * @param $item
+ * @return bool 
+ */
 function isValidSymb (String $item)
 {
   if (preg_match("/^(GF|LF|TF|string|int|bool|nil)@[a-zA-Z_$&%*!?-\][a-zA-Z0-9\_$&%*!?-@]*/", $item))
     return true;
   return false;
 }
+/**
+ * @brief Checks valid syntax of type from @a $item
+ * 
+ * @param $item
+ * @return bool 
+ */
 function isValidType (String $item)
 {
   if (preg_match("/^(string|int|bool)$/", $item))
@@ -40,7 +69,12 @@ function isValidType (String $item)
   return false;
 }
 
-// 2 functions for adding xml <instruction> & </instruction> tags to $output
+/**
+ * @brief Adds XML tag for instruction start with @a $name to $output 
+ * 
+ * @param $name
+ * @return void
+ */
 function addInstructionStart (String $name)
 {
   global $output, $instructionNumber;
@@ -49,11 +83,25 @@ function addInstructionStart (String $name)
   $output .= "\" opcode=\"";
   $output .= "$name\">\n";
 }
+/**
+ * @brief Adds end of XML tag for instruction to $output
+ * 
+ * @return void
+ */
 function addInstructionEnd ()
 {
   global $output;
   $output .= "\t</instruction>\n";
 }
+/**
+ * @brief Adds XML tags for argument start and end
+ *        with given @a $number, @a $type and @a $value
+ * 
+ * @param $number
+ * @param $type
+ * @param $value
+ * @return void
+ */
 function addArgument (Int $number, String $type, String $value)
 {
   global $output;
@@ -61,6 +109,7 @@ function addArgument (Int $number, String $type, String $value)
   $output .= "\t\t<arg$number type=\"$type\">$value</arg$number>\n";
 }
 
+/***** generating instruction by type and given $data *****/
 function genInstructionNoArg (Array $data)
 {
   global $instructionNumber, $output;
@@ -251,7 +300,16 @@ function genInstructionVarDoubleSymb (Array $data)
 
   addInstructionEnd();
 }
+/***** generating instruction by type and given $data *****/
 
+/**
+ * @brief Checks that number of arguments in @a $data equals
+ *        to @a $expectedCount
+ * 
+ * @param $expectedCount
+ * @param $data
+ * @return bool
+ */
 function checkArgumentsCount (Int $expectedCount, Array $data)
 {
   if ($expectedCount != ($realCount = count($data) - 1))
@@ -263,6 +321,13 @@ function checkArgumentsCount (Int $expectedCount, Array $data)
     exit(23);
   }
 }
+/**
+ * @brief Checks that passed @a $value for specific @a $type is valid
+ * 
+ * @param $type
+ * @param $value
+ * @return bool
+ */
 function checkValuesForType (String $type, String $value)
 {
   switch ($type)
@@ -302,7 +367,15 @@ function checkValuesForType (String $type, String $value)
   }
 }
 
-function parseLines (Array $lineData)
+/**
+ * @brief Checks if @a $lineData[0] is valid instruction name, checks correct
+ *        number of passed arguments and calls corresponding function for 
+ *        generating arguments
+ * 
+ * @param $lineData
+ * @return void
+ */
+function parseLine (Array $lineData)
 {
   if ($lineData[0][0] == '#') return;
   switch (strtoupper($lineData[0]))
@@ -410,6 +483,7 @@ if ($argc == 2)
     exit(1);
   }
 }
+// check max number of passed arguments
 else if ($argc > 2)
 {
   fwrite(
@@ -449,7 +523,7 @@ while ($line = fgets(STDIN))
   }
 
   // parse rest of file
-  parseLines($splittedLine);
+  parseLine($splittedLine);
 }
 
 // check that file wasn't empty
