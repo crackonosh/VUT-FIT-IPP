@@ -1,5 +1,4 @@
 <?php
-// for correct displaying error msgs to stderr, taken from project assignment
 ini_set('display_errors', 'stderr');
 
 // global variables used for correct behavior of parser
