@@ -28,7 +28,7 @@ function stripComment(String $item)
  */
 function isValidVar (String $item)
 {
-  if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*/", $item))
+  if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*$/", $item))
     return true;
   return false;
 }
@@ -40,7 +40,7 @@ function isValidVar (String $item)
  */
 function isValidLabel (String $item)
 {
-  if (preg_match("/^[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*/", $item))
+  if (preg_match("/^[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*$/", $item))
     return true;
   return false;
 }
@@ -52,7 +52,12 @@ function isValidLabel (String $item)
  */
 function isValidSymb (String $item)
 {
-  if (preg_match("/^(GF|LF|TF|string|int|bool|nil)@[a-zA-Z_$&%*!?-\][a-zA-Z0-9\_$&%*!?-@]*/", $item))
+  if (
+    preg_match(
+      "/^(GF|LF|TF|string|int|bool|nil)@[a-zA-Z_$&%*!?-\][a-zA-Z0-9\_$&%*!?-@]/",
+      $item
+    )
+  )
     return true;
   return false;
 }
@@ -106,6 +111,7 @@ function addArgument (Int $number, String $type, String $value)
 {
   global $output;
 
+  $value = htmlentities($value);
   $output .= "\t\t<arg$number type=\"$type\">$value</arg$number>\n";
 }
 
