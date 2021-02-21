@@ -328,22 +328,20 @@ function checkArgumentsCount (Int $expectedCount, Array $data)
  * @param $value
  * @return bool
  */
-function checkValuesForType (String $type, String $value)
+function checkValuesForType (String $type, String &$value)
 {
   switch ($type)
   {
     case 'nil':
-      if ($type == 'nil' && $value != 'nil')
+      if ($value != 'nil')
       {
         fwrite(STDERR, "Invalid value for nil type, exiting...\n");
         exit(23);
       }
       break;
     case 'bool':
-      if (
-        $type == 'bool' &&
-        ($value != true || $value != false)
-      ){
+      if (!($value == 'true' || $value == 'false'))
+      {
         fwrite(STDERR, "Invalid value for bool type, exiting...\n");
         exit(23);
       }
@@ -362,6 +360,8 @@ function checkValuesForType (String $type, String $value)
         );
         exit(23);
       }
+      else
+        $value = htmlentities($value, ENT_QUOTES);
       break;
     default:
   }
