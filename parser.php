@@ -29,7 +29,8 @@ function isValidVar (String $item)
 {
   if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*$/", $item))
     return true;
-  return false;
+  fwrite(STDERR, "Argument is not valid var, exiting...\n");
+  exit(23);
 }
 /**
  * @brief Checks valid syntax of label from @a $item
@@ -41,7 +42,8 @@ function isValidLabel (String $item)
 {
   if (preg_match("/^[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*$/", $item))
     return true;
-  return false;
+  fwrite(STDERR, "Argument is not valid label, exiting...\n");
+  exit(23);
 }
 /**
  * @brief Checks valid syntax of symb from @a $item
@@ -58,7 +60,8 @@ function isValidSymb (String $item)
     )
   )
     return true;
-  return false;
+  fwrite(STDERR, "Argument is not valid symb, exiting...\n");
+  exit(23);
 }
 /**
  * @brief Checks valid syntax of type from @a $item
@@ -70,7 +73,8 @@ function isValidType (String $item)
 {
   if (preg_match("/^(string|int|bool)$/", $item))
     return true;
-  return false;
+  fwrite(STDERR, "Argument is not valid type, exiting...\n");
+  exit(23);
 }
 
 /**
@@ -130,8 +134,6 @@ function genInstructionVar (Array $data)
 
   if (isValidVar($data[1]))
     addArgument(1, "var", $data[1]);
-  else
-    exit(23);
 
   addInstructionEnd();
 }
@@ -143,8 +145,6 @@ function genInstructionLabel (Array $data)
 
   if (isValidLabel($data[1]))
     addArgument(1, "label", $data[1]);
-  else
-    exit(23);
 
   addInstructionEnd();
 }
@@ -167,8 +167,6 @@ function genInstructionSymb (Array $data)
       addArgument(1, $strippedType, $strippedValue);
     }
   }
-  else
-    exit(23);
 
   addInstructionEnd();
 }
@@ -180,8 +178,6 @@ function genInstructionVarSymb (Array $data)
 
   if (isValidVar($data[1]))
     addArgument(1, "var", $data[1]);
-  else
-    exit(23);
 
   if (isValidSymb($data[2]))
   {
@@ -196,8 +192,6 @@ function genInstructionVarSymb (Array $data)
       addArgument(2, $strippedType, $strippedValue);
     }
   }
-  else
-    exit(23);
 
   addInstructionEnd();
 }
@@ -209,13 +203,9 @@ function genInstructionVarType (Array $data)
 
   if (isValidVar($data[1]))
     addArgument(1, "var", $data[1]);
-  else
-    exit(23);
 
   if (isValidType($data[2]))
     addArgument(2, $data[2], "");
-  else
-    exit(23);
 
   addInstructionEnd();
 }
@@ -227,8 +217,6 @@ function genInstructionLabelDoubleSymb (Array $data)
 
   if (isValidLabel($data[1]))
     addArgument(1, "label", $data[1]);
-  else
-    exit(23);
 
   if (isValidSymb($data[2]))
   {
@@ -242,8 +230,6 @@ function genInstructionLabelDoubleSymb (Array $data)
       addArgument(2, $strippedType, $strippedValue);
     }
   }
-  else
-    exit(23);
 
   if (isValidSymb($data[3]))
   {
@@ -257,8 +243,6 @@ function genInstructionLabelDoubleSymb (Array $data)
       addArgument(3, $strippedType, $strippedValue);
     }
   }
-  else
-    exit(23);
 
   addInstructionEnd();
 }
@@ -270,8 +254,6 @@ function genInstructionVarDoubleSymb (Array $data)
 
   if (isValidVar($data[1]))
     addArgument(1, "var", $data[1]);
-  else
-    exit(23);
 
   if (isValidSymb($data[2]))
   {
@@ -285,8 +267,6 @@ function genInstructionVarDoubleSymb (Array $data)
       addArgument(2, $strippedType, $strippedValue);
     }
   }
-  else
-    exit(23);
 
   if (isValidSymb($data[3]))
   {
@@ -300,8 +280,6 @@ function genInstructionVarDoubleSymb (Array $data)
       addArgument(3, $strippedType, $strippedValue);
     }
   }
-  else
-    exit(23);
 
   addInstructionEnd();
 }
