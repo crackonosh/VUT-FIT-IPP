@@ -494,8 +494,7 @@ while ($line = fgets(STDIN))
   // check if correct header is present and decide action depending on it
   if (!$presentHeader)
   {
-    // maybe add fix for comment
-    if (preg_match("/^.ippcode19$/i", $splittedLine[0])) $presentHeader = true;
+    if (preg_match("/^.ippcode21$/i", $splittedLine[0])) $presentHeader = true;
     else
     {
       fwrite(
