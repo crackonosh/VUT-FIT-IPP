@@ -27,7 +27,7 @@ function stripComment(String $item)
  */
 function isValidVar (String $item)
 {
-  if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*$/", $item))
+  if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][\S]*$/", $item))
     return true;
   fwrite(STDERR, "Argument is not valid var, exiting...\n");
   exit(23);
@@ -40,7 +40,7 @@ function isValidVar (String $item)
  */
 function isValidLabel (String $item)
 {
-  if (preg_match("/^[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*$/", $item))
+  if (preg_match("/^[a-zA-Z_$&%*!?-][\S]*$/", $item))
     return true;
   fwrite(STDERR, "Argument is not valid label, exiting...\n");
   exit(23);
@@ -55,11 +55,12 @@ function isValidSymb (String $item)
 {
   if (
     preg_match(
-      "/^(GF|LF|TF|string|int|bool|nil)@[a-zA-Z_$&%*!?-\][a-zA-Z0-9\_$&%*!?-@]/",
+      "/^(GF|LF|TF|string|int|bool|nil)@[\S]*/",
       $item
     )
   )
     return true;
+  fwrite(STDERR, $item);
   fwrite(STDERR, "Argument is not valid symb, exiting...\n");
   exit(23);
 }
