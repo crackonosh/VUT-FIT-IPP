@@ -55,12 +55,11 @@ function isValidSymb (String $item)
 {
   if (
     preg_match(
-      "/^(GF|LF|TF|string|int|bool|nil)@[\S]*/",
+      "/^(GF|LF|TF|string|int|bool|nil)@[a-zA-Z_$&%*!?-\\][\S]*/",
       $item
     )
   )
     return true;
-  fwrite(STDERR, $item);
   fwrite(STDERR, "Argument is not valid symb, exiting...\n");
   exit(23);
 }
@@ -159,7 +158,15 @@ function genInstructionSymb (Array $data)
   {
     // check whether variable or constant
     if (preg_match("/^(GF|LF|TF)/", $data[1]))
-      addArgument(1, "var", $data[1]);
+    {
+      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[1], strpos($data[1], '@')+1)))
+        addArgument(1, "var", $data[1]);
+      else
+      {
+        fwrite(STDERR, "Invalid format for symb, exiting...\n");
+        exit(23);
+      }
+    }
     else
     {
       $strippedType = substr($data[1], 0, strpos($data[1], '@'));
@@ -183,7 +190,15 @@ function genInstructionVarSymb (Array $data)
   if (isValidSymb($data[2]))
   {
     if (preg_match("/^(GF|LF|TF)/", $data[2]))
-      addArgument(2, "var", $data[2]);
+    {
+      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+        addArgument(2, "var", $data[2]);
+      else
+      {
+        fwrite(STDERR, "Invalid format for symb, exiting...\n");
+        exit(23);
+      }
+    }
     else
     {
       $strippedType = substr($data[2], 0, strpos($data[2], '@'));
@@ -221,8 +236,16 @@ function genInstructionLabelDoubleSymb (Array $data)
 
   if (isValidSymb($data[2]))
   {
-    if (preg_match("/^(GF|LF|TF)/", $data[2]))
-      addArgument(2, "var", $data[2]);
+    if (preg_match("/^(GF|LF|TF)/", $data[1]))
+    {
+      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+        addArgument(2, "var", $data[2]);
+      else
+      {
+        fwrite(STDERR, "Invalid format for symb, exiting...\n");
+        exit(23);
+      }
+    }
     else
     {
       $strippedType = substr($data[2], 0, strpos($data[2], '@'));
@@ -234,8 +257,16 @@ function genInstructionLabelDoubleSymb (Array $data)
 
   if (isValidSymb($data[3]))
   {
-    if (preg_match("/^(GF|LF|TF)/", $data[3]))
-      addArgument(3, "var", $data[3]);
+    if (preg_match("/^(GF|LF|TF)/", $data[1]))
+    {
+      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+        addArgument(2, "var", $data[2]);
+      else
+      {
+        fwrite(STDERR, "Invalid format for symb, exiting...\n");
+        exit(23);
+      }
+    }
     else
     {
       $strippedType = substr($data[3], 0, strpos($data[3], '@'));
@@ -258,8 +289,16 @@ function genInstructionVarDoubleSymb (Array $data)
 
   if (isValidSymb($data[2]))
   {
-    if (preg_match("/^(GF|LF|TF)/", $data[2]))
-      addArgument(2, "var", $data[2]);
+    if (preg_match("/^(GF|LF|TF)/", $data[1]))
+    {
+      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+        addArgument(2, "var", $data[2]);
+      else
+      {
+        fwrite(STDERR, "Invalid format for symb, exiting...\n");
+        exit(23);
+      }
+    }
     else
     {
       $strippedType = substr($data[2], 0, strpos($data[2], '@'));
@@ -271,8 +310,16 @@ function genInstructionVarDoubleSymb (Array $data)
 
   if (isValidSymb($data[3]))
   {
-    if (preg_match("/^(GF|LF|TF)/", $data[3]))
-      addArgument(3, "var", $data[3]);
+    if (preg_match("/^(GF|LF|TF)/", $data[1]))
+    {
+      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+        addArgument(2, "var", $data[2]);
+      else
+      {
+        fwrite(STDERR, "Invalid format for symb, exiting...\n");
+        exit(23);
+      }
+    }
     else
     {
       $strippedType = substr($data[3], 0, strpos($data[3], '@'));
