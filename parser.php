@@ -114,7 +114,7 @@ function addArgument (Int $number, String $type, String $value)
 {
   global $output;
 
-  $value = htmlentities($value);
+  $value = htmlspecialchars($value, ENT_QUOTES);
   $output .= "\t\t<arg$number type=\"$type\">$value</arg$number>\n";
 }
 
@@ -391,8 +391,6 @@ function checkValuesForType (String $type, String &$value)
         );
         exit(23);
       }
-      else
-        $value = htmlentities($value, ENT_QUOTES);
       break;
     default:
   }
