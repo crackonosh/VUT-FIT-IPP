@@ -379,7 +379,6 @@ function checkValuesForType (String $type, String &$value)
       break;
     case 'string':
       if (
-        $type == 'string' &&
         preg_match(
           "/(\\\\[^0-9])|(\\\\[0-9][^0-9])|(\\\\[0-9][0-9][^0-9])/",
           $value
@@ -387,7 +386,7 @@ function checkValuesForType (String $type, String &$value)
       ){
         fwrite(
           STDERR,
-          "Invalid number of parameters for escaped character, exiting...\n"
+          "Invalid number of digits for escaped character, exiting...\n"
         );
         exit(23);
       }
