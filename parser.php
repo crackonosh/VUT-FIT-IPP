@@ -27,7 +27,7 @@ function stripComment(String $item)
  */
 function isValidVar (String $item)
 {
-  if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][\S]*$/", $item))
+  if (preg_match("/^(GF|LF|TF)@[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*$/", $item))
     return true;
   fwrite(STDERR, "Argument is not valid var, exiting...\n");
   exit(23);
@@ -40,7 +40,7 @@ function isValidVar (String $item)
  */
 function isValidLabel (String $item)
 {
-  if (preg_match("/^[a-zA-Z_$&%*!?-][\S]*$/", $item))
+  if (preg_match("/^[a-zA-Z_$&%*!?-][a-zA-Z0-9_$&%*!?-]*$/", $item))
     return true;
   fwrite(STDERR, "Argument is not valid label, exiting...\n");
   exit(23);
@@ -55,9 +55,11 @@ function isValidSymb (String $item)
 {
   if (
     preg_match(
-      "/^(GF|LF|TF|string|int|bool|nil)@[a-zA-Z_$&%*!?-\\][\S]*/",
+      "/^(GF|LF|TF|bool|nil)@[a-zA-Z_$&%*!?-][\S]*/",
       $item
-    )
+    ) ||
+    preg_match("/^string@[\S]*$/", $item) ||
+    preg_match("/^int@[+-]{0,1}[\d]*$/", $item)
   )
     return true;
   fwrite(STDERR, "Argument is not valid symb, exiting...\n");
@@ -114,7 +116,6 @@ function addArgument (Int $number, String $type, String $value)
 {
   global $output;
 
-  $value = htmlspecialchars($value, ENT_QUOTES);
   $output .= "\t\t<arg$number type=\"$type\">$value</arg$number>\n";
 }
 
@@ -159,7 +160,7 @@ function genInstructionSymb (Array $data)
     // check whether variable or constant
     if (preg_match("/^(GF|LF|TF)/", $data[1]))
     {
-      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[1], strpos($data[1], '@')+1)))
+      if (preg_match("/^[a-zA-Z_$&%*!?-]*$/", substr($data[1], strpos($data[1], '@')+1)))
         addArgument(1, "var", $data[1]);
       else
       {
@@ -191,7 +192,7 @@ function genInstructionVarSymb (Array $data)
   {
     if (preg_match("/^(GF|LF|TF)/", $data[2]))
     {
-      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+      if (preg_match("/^[a-zA-Z_$&%*!?-]*$/", substr($data[2], strpos($data[2], '@')+1)))
         addArgument(2, "var", $data[2]);
       else
       {
@@ -238,7 +239,7 @@ function genInstructionLabelDoubleSymb (Array $data)
   {
     if (preg_match("/^(GF|LF|TF)/", $data[1]))
     {
-      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+      if (preg_match("/^[a-zA-Z_$&%*!?-]*$/", substr($data[2], strpos($data[2], '@')+1)))
         addArgument(2, "var", $data[2]);
       else
       {
@@ -259,7 +260,7 @@ function genInstructionLabelDoubleSymb (Array $data)
   {
     if (preg_match("/^(GF|LF|TF)/", $data[1]))
     {
-      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+      if (preg_match("/^[a-zA-Z_$&%*!?-]*$/", substr($data[2], strpos($data[2], '@')+1)))
         addArgument(2, "var", $data[2]);
       else
       {
@@ -291,7 +292,7 @@ function genInstructionVarDoubleSymb (Array $data)
   {
     if (preg_match("/^(GF|LF|TF)/", $data[1]))
     {
-      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+      if (preg_match("/^[a-zA-Z_$&%*!?-]*$/", substr($data[2], strpos($data[2], '@')+1)))
         addArgument(2, "var", $data[2]);
       else
       {
@@ -312,7 +313,7 @@ function genInstructionVarDoubleSymb (Array $data)
   {
     if (preg_match("/^(GF|LF|TF)/", $data[1]))
     {
-      if (preg_match("/^[a-zA-Z_$&%*!?-]/", substr($data[2], strpos($data[2], '@')+1)))
+      if (preg_match("/^[a-zA-Z_$&%*!?-]*$/", substr($data[2], strpos($data[2], '@')+1)))
         addArgument(2, "var", $data[2]);
       else
       {
@@ -389,6 +390,10 @@ function checkValuesForType (String $type, String &$value)
           "Invalid number of digits for escaped character, exiting...\n"
         );
         exit(23);
+      }
+      else
+      {
+        $value = htmlspecialchars($value, ENT_QUOTES);
       }
       break;
     default:
