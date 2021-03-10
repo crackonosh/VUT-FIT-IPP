@@ -1,0 +1,25 @@
+\documentclass[12pt]{article}
+\usepackage{times}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, top=3cm, left=2cm]{geometry}
+
+\begin{document}
+\begin{center}
+	\texttt{Documentation of 1st Project Implementation for IPP 2020/2021}\\
+	\texttt{Name and surname: Lukas HAIS}\\
+	\texttt{Login: xhaisl00}\\
+\end{center}
+
+\section{Conception}
+Creation of \emph{PHP 7.4} script that reads stream from standard input (\texttt{STDIN}) and transforms it into XML by specifications of IPPcode21 language.
+\section{Own implementation}
+At first we check validity of passed options from \emph{command line}. If (\texttt{--help}) is present we print help info to \emph{standard output} (\texttt{STDOUT}). After that go to reading from \emph{standard input} (\texttt{STDIN}).
+\subsection{Reading from standard input}
+Reading is performed using \texttt{fgets()} function inside a while loop which ends if we encounter \texttt{EOL}. This while loop skips empty lines, splits given line by words and strips unnecessary \emph{white characters} and \emph{comments} from it. Next it checks if correct header is present, if so it generates corresponding \texttt{<program>} XML tag and then sends following lines to \texttt{parseLine()} function, otherwise exits with 21.
+\subsection{Parsing lines}
+In \texttt{parseLine()} function we check that 1st word of line is valid instruction name, if so check correct number of remaining arguments and call function for generating those instructions (functions for generation vary for each type), otherwise exit with 22.
+\subsection{Generating instructions}
+In generating functions we add \texttt{<instruction>} XML tag and check validity of each passed argument. If they are valid call \texttt{addArgument()} function, otherwise exit with 23. Some argument types also need additional checks of value for given type (ex.: \emph{string}).
+\subsection{Generating arguments}
+Before generating arguments we call inbuilt \texttt{htmlspecialchars()} function on argument's value for converting all applicable characters to HTML entities (ex.: \& to \&amph;). After that we add \texttt{<arg>} XML tag with correct argument's number.
+\end{document}
