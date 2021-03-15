@@ -116,6 +116,7 @@ function addArgument (Int $number, String $type, String $value)
 {
   global $output;
 
+
   $output .= "\t\t<arg$number type=\"$type\">$value</arg$number>\n";
 }
 
@@ -222,7 +223,7 @@ function genInstructionVarType (Array $data)
     addArgument(1, "var", $data[1]);
 
   if (isValidType($data[2]))
-    addArgument(2, $data[2], "");
+    addArgument(2, 'type', $data[2]);
 
   addInstructionEnd();
 }
