@@ -116,7 +116,7 @@ function addArgument (Int $number, String $type, String $value)
 {
   global $output;
 
-
+  $value = htmlspecialchars($value, ENT_QUOTES);
   $output .= "\t\t<arg$number type=\"$type\">$value</arg$number>\n";
 }
 
@@ -393,10 +393,6 @@ function checkValuesForType (String $type, String &$value)
         );
         exit(23);
       }
-      else
-      {
-        $value = htmlspecialchars($value, ENT_QUOTES);
-      }
       break;
     default:
   }
@@ -515,7 +511,7 @@ if ($argc == 2)
       STDERR,
       "Wrong option passed, run `parser.php --help` for further info, exiting...\n"
     );
-    exit(1);
+    exit(23);
   }
 }
 // check max number of passed arguments
@@ -525,7 +521,7 @@ else if ($argc > 2)
     STDERR,
     "Wrong number of passed options, run `parser.php --help` for further info, exiting...\n"
   );
-  exit(1);
+  exit(23);
 }
 
 // read line by line from stdin
