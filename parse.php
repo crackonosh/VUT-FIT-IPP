@@ -91,7 +91,7 @@ function addInstructionStart (String $name)
   $output .= "\t<instruction order=\"";
   $output .= $instructionNumber++;
   $output .= "\" opcode=\"";
-  $output .= "$name\">\n";
+  $output .= strtoupper($name)."\">\n";
 }
 /**
  * @brief Adds end of XML tag for instruction to $output
@@ -382,7 +382,7 @@ function checkValuesForType (String $type, String &$value)
     case 'string':
       if (
         preg_match(
-          "/(\\\\[^0-9])|(\\\\[0-9][^0-9])|(\\\\[0-9][0-9][^0-9])/",
+          "/(\\\\[^0-9])|(\\\\[0-9][^0-9])|(\\\\[0-9][0-9][^0-9])|(\\\\$)/",
           $value
         )
       ){
