@@ -59,7 +59,7 @@ function isValidSymb (String $item)
       $item
     ) ||
     preg_match("/^string@[\S]*$/", $item) ||
-    preg_match("/^int@[+-]{0,1}[\d]*$/", $item)
+    preg_match("/^int@[+-]{0,1}[\d]{1,}$/", $item)
   )
     return true;
   fwrite(STDERR, "Argument is not valid symb, exiting...\n");
