@@ -530,8 +530,8 @@ else if ($argc > 2)
 // read line by line from stdin
 while ($line = fgets(STDIN))
 {
-  // skip empty lines
-  if ($line == "\n") continue;
+  // skip empty lines and comments
+  if ($line == "\n" || $line[0] == '#') continue;
 
   /**
    * trim line from newLine character & leading space
