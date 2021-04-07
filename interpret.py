@@ -225,6 +225,7 @@ def checkVarExistence(frame, name):
     stderr.write("Not yet implemented, exiting...\n")
     exit(99)
 def saveToVariable(frame, name, arg):
+  # TODO: implement other frames and loading from other variables
   if re.match(r"(int|bool|string)", arg.type):
     if frame == "GF":
       GF[name] = Variable(arg.type, arg.value)
@@ -251,6 +252,7 @@ def iDEFVAR(var):
 def iMOVE(var, symb):
   splittedVar = var.value.split("@")
   checkVarExistence(splittedVar[0], splittedVar[1])
+  saveToVariable(splittedVar[0], splittedVar[1], symb)
 def iJUMPIF(instName, labelName, var1, var2):
   global positionInProgram
   if var1.type == "var":
@@ -329,21 +331,12 @@ def iCONCAT(var1, var2, var3):
 def interpretInstruction(inst):
   global positionInProgram
   #defVar not complete
-  if inst.name == "DEFVAR":
+  if inst.name == "MOVE":
+    var = inst.args[0]
+    symb = inst.args[1]
+    iMOVE(var, symb)
+  elif inst.name == "DEFVAR":
     iDEFVAR(inst.args[0])
-    # IMPLEMENT OTHER FRAMES
-  # MOVE does not support loading from other variables
-  elif inst.name == "MOVE":
-    varToSave = inst.args[0].value.split("@")
-    varToLoad = inst.args[1]
-    saveToVariable(varToSave[0], varToSave[1], varToLoad)
-  elif inst.name == "LABEL":
-    pass
-  elif inst.name == "JUMPIFEQ":
-    label = inst.args[0].value
-    var1 = inst.args[1]
-    var2 = inst.args[2]
-    iJUMPIF(inst.name, label, var1, var2)
   elif inst.name == "WRITE":
     iWRITE(inst.args[0])
   elif inst.name == "CONCAT":
@@ -351,12 +344,19 @@ def interpretInstruction(inst):
     var2 = inst.args[1]
     var3 = inst.args[2]
     iCONCAT(var1, var2, var3)
+  elif inst.name == "LABEL":
+    pass
   elif inst.name == "JUMP":
     labelName = inst.args[0].value
     if not(labelName in labels.keys()):
       stderr.write("Label does not exist, exiting...\n")
       exit(52)
     positionInProgram = int(labels[labelName]-1)
+  elif inst.name == "JUMPIFEQ":
+    label = inst.args[0].value
+    var1 = inst.args[1]
+    var2 = inst.args[2]
+    iJUMPIF(inst.name, label, var1, var2)
 
 
 
