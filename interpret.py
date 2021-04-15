@@ -9,6 +9,7 @@ inputFile = ""
 instructions = list()
 positionInProgram = 0
 GF = dict()
+calls = list()
 labels = dict()
 ###############################################################################
 
@@ -253,6 +254,13 @@ def iMOVE(var, symb):
   splittedVar = var.value.split("@")
   checkVarExistence(splittedVar[0], splittedVar[1])
   saveToVariable(splittedVar[0], splittedVar[1], symb)
+def iCALL(position, arg):
+  global positionInProgram
+  calls.append(position)
+  if not(arg.value in labels.keys()):
+      stderr.write("Label does not exist, exiting...\n")
+      exit(52)
+  positionInProgram = int(labels[arg.value]-1)
 def iJUMPIF(instName, labelName, var1, var2):
   global positionInProgram
   if var1.type == "var":
@@ -298,8 +306,17 @@ def iWRITE(var):
     else:
       print(var.value, end='')
   else:
-    # TODO: fix escape sequences in string
-    print(var.value, end='')
+    tmp = re.split(r"\\", var.value)
+    newString = ""
+    for x in range(0, len(tmp)):
+      if (x == 0):
+        newString += tmp[x]
+      elif len(tmp[x]) > 3:
+        newString += chr(int(tmp[x][:3]))
+        newString += tmp[x][3:]
+      else:
+        newString += chr(int(tmp[x]))
+    print(newString, end='')
 def iCONCAT(var1, var2, var3):
   if var2.type == "var":
     tmp = var2.value.split("@")
@@ -337,6 +354,14 @@ def interpretInstruction(inst):
     iMOVE(var, symb)
   elif inst.name == "DEFVAR":
     iDEFVAR(inst.args[0])
+  elif inst.name == "CALL":
+    iCALL(inst.number, inst.args[0])
+  elif inst.name == "RETURN":
+    if len(calls) == 0:
+      stderr.write("Return when no call was performed, exiting...\n")
+      exit(56)
+    pos = calls.pop()
+    positionInProgram = int(pos-1)
   elif inst.name == "WRITE":
     iWRITE(inst.args[0])
   elif inst.name == "CONCAT":
@@ -352,11 +377,35 @@ def interpretInstruction(inst):
       stderr.write("Label does not exist, exiting...\n")
       exit(52)
     positionInProgram = int(labels[labelName]-1)
-  elif inst.name == "JUMPIFEQ":
+  elif inst.name == "JUMPIFEQ" or inst.name == "JUMPIFNEQ":
     label = inst.args[0].value
     var1 = inst.args[1]
     var2 = inst.args[2]
     iJUMPIF(inst.name, label, var1, var2)
+  elif inst.name == "EXIT":
+    var = inst.args[0]
+    if var.type == "var":
+      tmp = var.value.split('@')
+      var = getVariable(tmp[0], tmp[1])
+    
+    if var.type != "int":
+      stderr.write("Type of symbol is not int, exiting...")
+      exit(57)
+
+    if int(var.value) < 0 or int(var.value) > 49:
+      stderr.write("Invalid value for exit, exiting...")
+      exit(57)
+
+    exitcode = int(var.value)
+    print("\nvariables in GF:")
+    for var in GF:
+      print(var, GF[var].type, GF[var].value)
+    print("\nlabels:")
+    for var in labels:
+      print(var, labels[var])
+    exit(exitcode)
+  elif inst.name == "DPRINT" or inst.name == "BREAK":
+    pass
 
 
 
@@ -493,18 +542,21 @@ if True:
   ###############################################################################
 
 ###### INTERPRET INSTRUCTIONS
+# save labels
 for i in instructions:
   if i.name == "LABEL":
     labels.update({i.args[0].value: i.number})
+
+# interpret
 while positionInProgram != len(instructions):
   #print(instructions[positionInProgram].name, instructions[positionInProgram].number)
   interpretInstruction(instructions[positionInProgram])
   positionInProgram += 1
 ###############################################################################
 
-print("\nvariables in GF:")
+print("\n\nvariables in GF:")
 for var in GF:
   print(var, GF[var].type, GF[var].value)
-#print("\nlabels:")
-#for var in labels:
-#  print(var, labels[var])
+print("\nlabels:")
+for var in labels:
+  print(var, labels[var])
