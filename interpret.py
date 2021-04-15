@@ -343,6 +343,17 @@ def iCONCAT(var1, var2, var3):
   
   newVal = Argument("string", var2.value+var3.value)
   saveToVariable(varToSave[0], varToSave[1], newVal)
+def iTYPE(var1, var2):
+  if var2.type == "var":
+    tmp = var2.value.split("@")
+    # TODO: FIX NOT INITIALISED VARIABLE
+    var2 = getVariable(tmp[0], tmp[1])
+  else:
+    var2.value = var2.type
+  
+  tmp = var1.value.split("@")
+  checkVarExistence(tmp[0], tmp[1])
+  saveToVariable(tmp[0], tmp[1], var2)
 
 
 def interpretInstruction(inst):
@@ -369,6 +380,10 @@ def interpretInstruction(inst):
     var2 = inst.args[1]
     var3 = inst.args[2]
     iCONCAT(var1, var2, var3)
+  elif inst.name == "TYPE":
+    var1 = inst.args[0]
+    var2 = inst.args[1]
+    iTYPE(var1, var2)
   elif inst.name == "LABEL":
     pass
   elif inst.name == "JUMP":
