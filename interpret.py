@@ -1,5 +1,5 @@
 import argparse
-from sys import stderr
+from sys import stderr, stdin, exit
 import re
 import xml.etree.ElementTree as ET
 
@@ -9,6 +9,8 @@ inputFile = ""
 instructions = list()
 positionInProgram = 0
 GF = dict()
+TF = None
+LFs = list()
 calls = list()
 labels = dict()
 ###############################################################################
@@ -179,70 +181,121 @@ def checkInstructionLabelDoubleSymb(inst):
   if inst.args[0].type != "label":
     stderr.write("Invalid arg type, label expected, exiting...\n")
     exit(32)
-  if isValidLabel(inst.args[0]):
-    print("Valid label")
+  isValidLabel(inst.args[0])
   if not(re.match(r"^(var|string|bool|int|nil)$", inst.args[1].type)):
     stderr.write("Invalid arg type, exiting...\n")
     exit(32)
-  if isValidSymb(inst.args[1]):
-    print("Valid symb")
+  isValidSymb(inst.args[1])
   if not(re.match(r"^(var|string|bool|int|nil)$", inst.args[2].type)):
     stderr.write("Invalid arg type, exiting...\n")
     exit(32)
-  if isValidSymb(inst.args[2]):
-    print("Valid symb")
+  isValidSymb(inst.args[2])
 def checkInstructionVarDoubleSymb(inst):
   if inst.args[0].type != "var":
     stderr.write("Invalid arg type, var expected, exiting...\n")
     exit(32)
-  if isValidVar(inst.args[0]):
-    print("Valid var")
+  isValidVar(inst.args[0])
   if not(re.match(r"^(var|string|bool|int|nil)$", inst.args[1].type)):
     stderr.write("Invalid arg type, exiting...\n")
     exit(32)
-  if isValidSymb(inst.args[1]):
-    print("Valid symb")
+  isValidSymb(inst.args[1])
   if not(re.match(r"^(var|string|bool|int|nil)$", inst.args[1].type)):
     stderr.write("Invalid arg type, exiting...\n")
     exit(32)
-  if isValidSymb(inst.args[2]):
-    print("Valid symb")
+  isValidSymb(inst.args[2])
 ## end checks instruction arguments
 
 def getVariable(frame, name):
-  # TODO: implement other frames
+  global TF
+  global LFs
   if frame == "GF":
     if not name in GF.keys():
       stderr.write("Non existing variable, exiting...")
       exit(54)
     return GF[name]
+  elif frame == "TF":
+    if TF == None:
+      stderr.write("TF not initialized, exiting...\n")
+      exit(55)
+    if not name in TF.keys():
+      stderr.write("Non existing variable, exiting...")
+      exit(54)
+    return TF[name]
+  elif frame == "LF":
+    if len(LFs) == 0:
+      stderr.write("No frame in LF stack, exiting...\n")
+      exit(55)
+    if not name in LFs[len(LFs)-1].keys():
+      stderr.write("Non existing variable, exiting...")
+      exit(54)
+    return LFs[len(LFs)-1][name]
 def checkVarExistence(frame, name):
-  # TODO: implement other frames
   if frame == "GF":
     if not(name in GF.keys()):
       stderr.write("Non existing variable, exiting...\n")
       exit(54)
+  elif frame == "TF":
+    if TF == None:
+      stderr.write("TF not initialized, exiting...\n")
+      exit(55)
+
+    if not(name in TF.keys()):
+      stderr.write("Non existing variable, exiting...\n")
+      exit(54)
+  elif frame == "LF":
+    if len(LFs) == 0:
+      stderr.write("No frame in LF stack, exiting...\n")
+      exit(55)
+
+    if not(name in LFs[len(LFs)-1].keys()):
+      stderr.write("Non existing variable, exiting...\n")
+      exit(54)
   else:
-    stderr.write("Not yet implemented, exiting...\n")
+    stderr.write("Not supported frame passed, exiting...\n")
     exit(99)
 def saveToVariable(frame, name, arg):
-  # TODO: implement other frames and loading from other variables
-  if re.match(r"(int|bool|string)", arg.type):
+  if re.match(r"(int|bool|string|nil)", arg.type):
     if frame == "GF":
       GF[name] = Variable(arg.type, arg.value)
+    elif frame == "TF":
+      if TF == None:
+        stderr.write("TF not initialized, exiting...\n")
+        exit(55)
+      TF[name] = Variable(arg.type, arg.value)
+    elif frame == "LF":
+      if len(LFs) == 0:
+        stderr.write("No frame in LF stack, exiting...\n")
+        exit(55)
+      LFs[len(LFs)-1][name] = Variable(arg.type, arg.value)
     else:
-      stderr.write("Saving to other frames not implemented\n")
-      exit(99)
+      stderr.write("Unsupported frame passed, exiting...\n")
+      exit(55)
   elif arg.type == var:
-    print("Louading from other variables not supported\n")
-    exit(99)
+    tmp = arg.value.split("@")
+    checkVarExistence(tmp[0], tmp[1])
+    hold = getVariable(tmp[0],tmp[1])
+    if frame == "GF":
+      GF[name] = Variable(hold.type, hold.value)
+    elif frame == "TF":
+      if TF == None:
+        stderr.write("TF not initialized, exiting...\n")
+        exit(55)
+      TF[name] = Variable(hold.type, hold.value)
+    elif frame == "LF":
+      if len(LFs) == 0:
+        stderr.write("No frame in LF stack, exiting...\n")
+        exit(55)
+      LFs[len(LFs)-1][name] = Variable(hold.type, hold.value)
+    else:
+      stderr.write("Unsupported frame passed, exiting...\n")
+      exit(55)
+
   else:
     stderr.write("Unexpected error when saving to variable, exiting...\n")
     exit(99)
 
 
 def iDEFVAR(var):
-  # TODO: implement other frames
   splitted = var.value.split("@")    
   tmp = Variable(None, None)
   if splitted[0] == "GF":
@@ -250,6 +303,24 @@ def iDEFVAR(var):
       stderr.write("Variable already exists, exiting...\n")
       exit(52)
     GF.update({splitted[1]: tmp})
+  elif splitted[0] == "TF":
+    if TF == None:
+      stderr.write("TF not initialized, exiting...\n")
+      exit(52)
+
+    if splitted[1] in TF.keys():
+      stderr.write("Variable already exists, exiting...\n")
+      exit(52)
+    TF.update({splitted[1]: tmp})
+  elif splitted[0] == "LF":
+    if LFs.count == 0:
+      stderr.write("No LF in stack, exiting...\n")
+      exit(52)
+
+    if splitted[1] in LFs[len(LFs)-1].keys():
+      stderr.write("Variable already exists, exiting...\n")
+      exit(52)
+    LFs[len(LFs)-1].update({splitted[1]: tmp})
 def iMOVE(var, symb):
   splittedVar = var.value.split("@")
   checkVarExistence(splittedVar[0], splittedVar[1])
@@ -291,6 +362,8 @@ def iJUMPIF(instName, labelName, var1, var2):
         exit(52)
       positionInProgram = int(labels[labelName]-1)
 def iWRITE(var):
+  global TF
+  global Lfs
   if var.type == "nil":
     print("", end='')
   elif var.type == "bool":
@@ -408,7 +481,7 @@ def iSETCHAR(var1, var2, var3):
 def iTYPE(var1, var2):
   if var2.type == "var":
     tmp = var2.value.split("@")
-    # TODO: FIX NOT INITIALISED VARIABLE
+    checkVarExistence(tmp[0], tmp[1])
     var2 = getVariable(tmp[0], tmp[1])
   else:
     var2.value = var2.type
@@ -420,11 +493,22 @@ def iTYPE(var1, var2):
 
 def interpretInstruction(inst):
   global positionInProgram
-  #defVar not complete
+  global TF
+  global LFs
   if inst.name == "MOVE":
     var = inst.args[0]
     symb = inst.args[1]
     iMOVE(var, symb)
+  elif inst.name == "CREATEFRAME":
+    TF = dict()
+  elif inst.name == "PUSHFRAME":
+    LFs.append(TF)
+    TF = None
+  elif inst.name == "POPFRAME":
+    if LFs.count == 0:
+      stderr.write("Non existing frame in LF, exiting...\n")
+      exit(55)
+    TF = LFs.pop()
   elif inst.name == "DEFVAR":
     iDEFVAR(inst.args[0])
   elif inst.name == "CALL":
@@ -511,6 +595,9 @@ def interpretInstruction(inst):
     tmp = var1.value.split("@")
     checkVarExistence(tmp[0], tmp[1])
     saveToVariable(tmp[0], tmp[1], tmparg)
+  elif inst.name == "READ":
+    stderr.write("Read is not implemented, exiting...")
+    exit(99)
   elif inst.name == "WRITE":
     iWRITE(inst.args[0])
   elif inst.name == "CONCAT":
@@ -574,139 +661,131 @@ def interpretInstruction(inst):
   elif inst.name == "DPRINT" or inst.name == "BREAK":
     pass
 
+###############################################################################
 
+####### ARGUMENT PARSING
+argparser = argparse.ArgumentParser()
+argparser.add_argument("--source", nargs=1, help="Input file with XML representation of code")
+argparser.add_argument("--input", nargs=1, help="File containing inputs for reading of interpreted code")
+args = vars(argparser.parse_args())
+if args['input']:
+  inputFile = args['input'][0]
+else:
+  inputFile = None
+if args['source']:
+  sourceFile = args['source'][0]
+else:
+  sourceFile = None
+###############################################################################
 
-      
-    
-
-if True:
-  ###############################################################################
-
-  ####### ARGUMENT PARSING
-  argparser = argparse.ArgumentParser()
-  argparser.add_argument("--source", nargs=1, help="Input file with XML representation of code")
-  argparser.add_argument("--input", nargs=1, help="File containing inputs for reading of interpreted code")
-  args = vars(argparser.parse_args())
-  if args['input']:
-    inputFile = args['input'][0]
-  else:
-    inputFile = None
-  if args['source']:
-    sourceFile = args['source'][0]
-  else:
-    sourceFile = None
-  ###############################################################################
-
-  #print("Value of sourceFile: "+str(sourceFile))
-  #print("Value of inputFile: "+str(inputFile))
-  #print()
-
-  ###### XML SOURCE FILE PARSING
-  tree = None
+###### XML SOURCE FILE PARSING
+tree = None
+try:
   if sourceFile:
-    try:
-      tree = ET.parse(sourceFile)
-    except Exception as e:
-      stderr.write(str(e)+"\n")
-      stderr.write("Error occured when parsing source file, exiting...\n")
-      exit(31)
-  # add implementation for reading from STDIN
-  ###############################################################################
+    tree = ET.parse(sourceFile)
+  else:
+    tree = ET.parse(stdin)
+except Exception as e:
+  stderr.write(str(e)+"\n")
+  stderr.write("Error occured when parsing source file, exiting...\n")
+  exit(31)
+# add implementation for reading from STDIN
+###############################################################################
 
-  ###### XML SORTING
-  root = tree.getroot()
-  if root.tag != 'program':
-    stderr.write("Root tag is not program, exiting...\n")
-    exit(32)
+###### XML SORTING
+root = tree.getroot()
+if root.tag != 'program':
+  stderr.write("Root tag is not program, exiting...\n")
+  exit(32)
 
-  #sort <instruction> tags by opcode
+#sort <instruction> tags by opcode
+try:
+  root[:] = sorted(root, key=lambda child: (child.tag, int(child.get('order'))))
+except Exception as e:
+  stderr.write(str(e)+"\n")
+  stderr.write("Error occured when sorting <instruction> elements, exiting...\n")
+  exit(32)
+
+# sort <arg#> elements
+for child in root:
   try:
-    root[:] = sorted(root, key=lambda child: (child.tag, int(child.get('order'))))
+    child[:] = sorted(child, key=lambda child: (child.tag))
   except Exception as e:
     stderr.write(str(e)+"\n")
-    stderr.write("Error occured when sorting <instruction> elements, exiting...\n")
+    stderr.write("Error occured when sorting <arg#> elements, exiting...\n")
+    exit(32)
+###############################################################################
+
+###### XML INNER VALIDITY CHECKS
+# <program> check of correct 'language' attribute
+if not('language' in list(root.attrib.keys())):
+  stderr.write("Unable to find 'language' attribute for <program> tag, exiting...\n")
+  exit(32)
+if not(re.match(r"ippcode21", root.attrib['language'], re.IGNORECASE)):
+  stderr.write("Wrong <program> tag 'language' attrib value, exiting...\n")
+  exit(32)
+
+# <instruction> checks of tag and correct attributes
+prevOrder = 0
+for child in root:
+  if child.tag != 'instruction':
+    stderr.write("First level elements after root should be called <instruction>, exiting...\n")
     exit(32)
 
-  # sort <arg#> elements
-  for child in root:
-    try:
-      child[:] = sorted(child, key=lambda child: (child.tag))
-    except Exception as e:
-      stderr.write(str(e)+"\n")
-      stderr.write("Error occured when sorting <arg#> elements, exiting...\n")
-      exit(32)
-  ###############################################################################
-
-  ###### XML INNER VALIDITY CHECKS
-  # <program> check of correct 'language' attribute
-  if not('language' in list(root.attrib.keys())):
-    stderr.write("Unable to find 'language' attribute for <program> tag, exiting...\n")
-    exit(32)
-  if not(re.match(r"ippcode21", root.attrib['language'], re.IGNORECASE)):
-    stderr.write("Wrong <program> tag 'language' attrib value, exiting...\n")
+  # check correct attributes
+  ca = list(child.attrib.keys())
+  if not('order' in ca) or not('opcode' in ca):
+    stderr.write("<instruction> element has to have 'order' & 'opcode' attributes, exiting...\n")
     exit(32)
 
-  # <instruction> checks of tag and correct attributes
-  prevOrder = 0
-  for child in root:
-    if child.tag != 'instruction':
-      stderr.write("First level elements after root should be called <instruction>, exiting...\n")
+  # check that no 2 elemeents with same order number
+  if prevOrder == child.attrib['order']:
+    stderr.write("2 <instruction> elements with same order found, exiting...\n")
+    exit(32)
+  prevOrder = child.attrib['order']
+
+# iterate over <instruction> elements
+for child in root:
+  # check that there are not diplicates in child elements
+  dup = set()
+  for c in child:
+    if c.tag not in dup:
+      dup.add(c.tag)
+  if len(dup) != len(child):
+    stderr.write("Found duplicate <arg#> elements, exiting...\n")
+    exit(32)
+
+  # <arg#> checks
+  for c in child:
+    if not(re.match(r"arg[123]", c.tag)):
+      stderr.write("Only <arg#> where # ranges from 1-3 are allowed as subelements for <instruction>, exiting...\n")
       exit(32)
 
-    # check correct attributes
-    ca = list(child.attrib.keys())
-    if not('order' in ca) or not('opcode' in ca):
-      stderr.write("<instruction> element has to have 'order' & 'opcode' attributes, exiting...\n")
+    # <arg#> attribute check
+    att = list(c.attrib)
+    if not('type' in att):
+      stderr.write("<arg#> elements has to have 'type' attribute, exiting...\n")
       exit(32)
+###############################################################################
 
-    # check that no 2 elemeents with same order number
-    if prevOrder == child.attrib['order']:
-      stderr.write("2 <instruction> elements with same order found, exiting...\n")
-      exit(32)
-    prevOrder = child.attrib['order']
-
-  # iterate over <instruction> elements
-  for child in root:
-    # check that there are not diplicates in child elements
-    dup = set()
-    for c in child:
-      if c.tag not in dup:
-        dup.add(c.tag)
-    if len(dup) != len(child):
-      stderr.write("Found duplicate <arg#> elements, exiting...\n")
-      exit(32)
-
-    # <arg#> checks
-    for c in child:
-      if not(re.match(r"arg[123]", c.tag)):
-        stderr.write("Only <arg#> where # ranges from 1-3 are allowed as subelements for <instruction>, exiting...\n")
-        exit(32)
-
-      # <arg#> attribute check
-      att = list(c.attrib)
-      if not('type' in att):
-        stderr.write("<arg#> elements has to have 'type' attribute, exiting...\n")
-        exit(32)
-  ###############################################################################
-
-  ###### FILLING INSTRUCTIONS LIST
-  instCount = 1
-  for elem in root:
-    instructions.append(
-      Instruction(elem.attrib['opcode'].upper(), instCount)
+###### FILLING INSTRUCTIONS LIST
+instCount = 1
+for elem in root:
+  instructions.append(
+    Instruction(elem.attrib['opcode'].upper(), instCount)
+  )
+  for subelem in elem:
+    instructions[instCount-1].addArgument(
+      subelem.attrib['type'].lower(), subelem.text
     )
-    for subelem in elem:
-      instructions[instCount-1].addArgument(
-        subelem.attrib['type'].lower(), subelem.text
-      )
-    instCount += 1
+  instCount += 1
 
-  ###############################################################################
+###############################################################################
 
-  ###### CHECK INSTRUCTIONS
-  for i in instructions:
-    checkInstruction(i)
-  ###############################################################################
+###### CHECK INSTRUCTIONS
+for i in instructions:
+  checkInstruction(i)
+###############################################################################
 
 ###### INTERPRET INSTRUCTIONS
 # save labels
@@ -716,14 +795,6 @@ for i in instructions:
 
 # interpret
 while positionInProgram != len(instructions):
-  #print(instructions[positionInProgram].name, instructions[positionInProgram].number)
   interpretInstruction(instructions[positionInProgram])
   positionInProgram += 1
 ###############################################################################
-
-print("\n\nvariables in GF:")
-for var in GF:
-  print(var, GF[var].type, GF[var].value)
-print("\nlabels:")
-for var in labels:
-  print(var, labels[var])
