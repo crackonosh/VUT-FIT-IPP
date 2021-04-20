@@ -1,0 +1,27 @@
+\documentclass[12pt]{article}
+\usepackage{times}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, top=3cm, left=2cm]{geometry}
+
+\begin{document}
+\begin{center}
+	\texttt{Documentation of 2nd Project Implementation for IPP 2020/2021}\\
+	\texttt{Name and surname: Lukas HAIS}\\
+	\texttt{Login: xhaisl00}\\
+\end{center}
+
+\section{Conception}
+Creation of \emph{Python} script that takes XML representing IPPcode21 and tries to interpret it's instructions.
+\section{Own implementation}
+At first we check validity of passed options from \emph{command line}. If (\texttt{--help}) is present we print help info to \emph{standard output} (\texttt{STDOUT}). After that go to parsing XML from \emph{standard input} (\texttt{STDIN}) or given file by \texttt{--source} flag.
+\subsection{Parsing XML}
+For XML parsing we are using \texttt{xml.etree.ElementTree} library. We then check that the XML is in correct format (ex.: no 2 instruction elements with same order, or valid tags in instruction element).
+\subsection{Instruction creation}
+We have predefined classes that we are using for creating instructions for interpreting. When we iterate over XML elements and save them to \texttt{instructions} list with Instruction class instances. We then check that those instructions are valid (ex.: not missing argument).
+\subsection{Saving labels}
+After instruction creation we iterate over \texttt{instructions} list and save every label with position in program to \texttt{labels} dict for \emph{JUMPing} in program.
+\subsection{Instruction interpretation}
+For every instruction in program we enter corresponding function that performs some additional checks (ex.: valid type of arguments for specified instruction) or resolves given variables in other frames. If everything of the above was successful we interpret this line and move on the next one.
+\subsection{Conclusion}
+Not everything in this project is working correctly and is finished. Some instructions are not implemented and many bugs may still occur in some cases.
+\end{document}
