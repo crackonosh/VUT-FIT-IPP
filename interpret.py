@@ -343,6 +343,68 @@ def iCONCAT(var1, var2, var3):
   
   newVal = Argument("string", var2.value+var3.value)
   saveToVariable(varToSave[0], varToSave[1], newVal)
+def iSTRLEN(var1, var2):
+  if var2.type == "var":
+    tmp = var2.value.split("@")
+    var2 = getVariable(tmp[0], tmp[1])
+  if var2.type != "string":
+    stderr.write("Cannot check length of string when type is not string, exiting...")
+    exit(53)
+  
+  tmp = var1.value.split("@")
+  checkVarExistence(tmp[0], tmp[1])
+  arg = Argument("int", len(var2.value))
+  saveToVariable(tmp[0], tmp[1], arg)
+def iGETCHAR(var1, var2, var3):
+  if var2.type == "var":
+    tmp = var2.value.split("@")
+    var2 = getVariable(tmp[0], tmp[1])
+  if var3.type == "var":
+    tmp = var3.value.split("@")
+    var3 = getVariable(tmp[0], tmp[1])
+  
+  if var2.type != "string":
+    stderr.write("2nd argument for getChar has to be string, exiting...")
+    exit(53)
+  if var3.type != "int":
+    stderr.write("3rd argument for getChar has to be int, exiting...")
+    exit(53)
+  
+  if int(var3.value) >= int(len(var2.value)):
+    stderr.write("Indexation out of bounds, exiting...")
+    exit(58)
+  
+  tmp = var1.value.split("@")
+  checkVarExistence(tmp[0], tmp[1])
+  arg = Argument("string", var2.value[int(var3.value)])
+  saveToVariable(tmp[0], tmp[1], arg)
+def iSETCHAR(var1, var2, var3):
+  if var2.type == "var":
+    tmp = var2.value.split("@")
+    var2 = getVariable(tmp[0], tmp[1])
+  if var3.type == "var":
+    tmp = var3.value.split("@")
+    var3 = getVariable(tmp[0], tmp[1])
+  
+  if var2.type != "int":
+    stderr.write("2nd argument for getChar has to be int, exiting...")
+    exit(53)
+  if var3.type != "string":
+    stderr.write("3rd argument for getChar has to be string, exiting...")
+    exit(53)
+
+  tmp = var1.value.split("@")
+  checkVarExistence(tmp[0], tmp[1])
+  tmp2 = getVariable(tmp[0], tmp[1])
+
+  if int(var2.value) >= len(tmp2.value):
+    stderr.write("Indexation out of bounds, exiting...")
+    exit(58)
+  
+  holdVal = tmp2.value
+  holdVal = holdVal[:int(var2.value)] + var3.value[0] + holdVal[int(var2.value)+1:]
+  arg = Argument("string", holdVal)
+  saveToVariable(tmp[0], tmp[1], arg)
 def iTYPE(var1, var2):
   if var2.type == "var":
     tmp = var2.value.split("@")
@@ -373,6 +435,82 @@ def interpretInstruction(inst):
       exit(56)
     pos = calls.pop()
     positionInProgram = int(pos-1)
+  elif inst.name == "ADD":
+    var1 = inst.args[0]
+    var2 = inst.args[1]
+    var3 = inst.args[2]
+
+    if var2.type == "var":
+      tmp = var2.value.split("@")
+      var2 = getVariable(tmp[0], tmp[1])
+    if var3.type == "var":
+      tmp = var3.value.split("@")
+      var3 = getVariable(tmp[0], tmp[1])
+
+    if var2.type != "int" or var2.type != "int":
+      stderr.write("Arguments has to be of type int, exiting...")
+      exit(53)
+    tmparg = Argument("int", int(var2.value) + int(var3.value))
+    tmp = var1.value.split("@")
+    checkVarExistence(tmp[0], tmp[1])
+    saveToVariable(tmp[0], tmp[1], tmparg)
+  elif inst.name == "SUB":
+    var1 = inst.args[0]
+    var2 = inst.args[1]
+    var3 = inst.args[2]
+
+    if var2.type == "var":
+      tmp = var2.value.split("@")
+      var2 = getVariable(tmp[0], tmp[1])
+    if var3.type == "var":
+      tmp = var3.value.split("@")
+      var3 = getVariable(tmp[0], tmp[1])
+
+    if var2.type != "int" or var2.type != "int":
+      stderr.write("Arguments has to be of type int, exiting...")
+      exit(53)
+    tmparg = Argument("int", int(var2.value) - int(var3.value))
+    tmp = var1.value.split("@")
+    checkVarExistence(tmp[0], tmp[1])
+    saveToVariable(tmp[0], tmp[1], tmparg)
+  elif inst.name == "MUL":
+    var1 = inst.args[0]
+    var2 = inst.args[1]
+    var3 = inst.args[2]
+
+    if var2.type == "var":
+      tmp = var2.value.split("@")
+      var2 = getVariable(tmp[0], tmp[1])
+    if var3.type == "var":
+      tmp = var3.value.split("@")
+      var3 = getVariable(tmp[0], tmp[1])
+
+    if var2.type != "int" or var2.type != "int":
+      stderr.write("Arguments has to be of type int, exiting...")
+      exit(53)
+    tmparg = Argument("int", int(var2.value) * int(var3.value))
+    tmp = var1.value.split("@")
+    checkVarExistence(tmp[0], tmp[1])
+    saveToVariable(tmp[0], tmp[1], tmparg)
+  elif inst.name == "IDIV":
+    var1 = inst.args[0]
+    var2 = inst.args[1]
+    var3 = inst.args[2]
+
+    if var2.type == "var":
+      tmp = var2.value.split("@")
+      var2 = getVariable(tmp[0], tmp[1])
+    if var3.type == "var":
+      tmp = var3.value.split("@")
+      var3 = getVariable(tmp[0], tmp[1])
+
+    if var2.type != "int" or var2.type != "int":
+      stderr.write("Arguments has to be of type int, exiting...")
+      exit(53)
+    tmparg = Argument("int", int(var2.value) // int(var3.value))
+    tmp = var1.value.split("@")
+    checkVarExistence(tmp[0], tmp[1])
+    saveToVariable(tmp[0], tmp[1], tmparg)
   elif inst.name == "WRITE":
     iWRITE(inst.args[0])
   elif inst.name == "CONCAT":
@@ -380,6 +518,20 @@ def interpretInstruction(inst):
     var2 = inst.args[1]
     var3 = inst.args[2]
     iCONCAT(var1, var2, var3)
+  elif inst.name == "STRLEN":
+    var1 = inst.args[0]
+    var2 = inst.args[1]
+    iSTRLEN(var1, var2)
+  elif inst.name == "GETCHAR":
+    var1 = inst.args[0]
+    var2 = inst.args[1]
+    var3 = inst.args[2]
+    iGETCHAR(var1, var2, var3)
+  elif inst.name == "SETCHAR":
+    var1 = inst.args[0]
+    var2 = inst.args[1]
+    var3 = inst.args[2]
+    iSETCHAR(var1, var2, var3)
   elif inst.name == "TYPE":
     var1 = inst.args[0]
     var2 = inst.args[1]
